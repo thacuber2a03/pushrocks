@@ -1,7 +1,7 @@
 import "globals"
 
 Screen = {
-	sizeInPixels = 64 * SCALE,
+	sizeInPixels = SCREEN_SIZE * SCALE,
 	isDirty = true,
 	toChange = {},
 	pixels = {},
@@ -12,39 +12,43 @@ GFX.setDrawOffset(
 	DHEIGHT/2 - Screen.sizeInPixels/2
 )
 
----Force a clear, regardless of the screen's state.
----@param col Color?
-function Screen.reset(col)
+---Hard reset the screen.
+---@param color Color?
+function Screen.reset(color)
 	Screen.toChange = {}
 	Screen.pixels = {}
-	for y=1, 64 do
+	for y=1, SCREEN_SIZE do
 		Screen.pixels[y] = {}
-		for x=1, 64 do
+		for x=1, SCREEN_SIZE do
 			Screen.pixels[y][x] = {}
 		end
 	end
 
 	GFX.clear(BLACK)
-	GFX.setColor(col or WHITE)
+	GFX.setColor(color or WHITE)
 	GFX.fillRect(0, 0, Screen.sizeInPixels, Screen.sizeInPixels)
 end
 
----Set all the pixels on the screen to color `col`.
----@param col Color?
-function Screen.clear(col)
-	table.insert(Screen.toChange, col)
+---Set all the pixels on the screen to `color`.
+---@param color Color?
+function Screen.clear(color)
+	for y=0, SCREEN_SIZE-1 do
+		for x=0, SCREEN_SIZE-1 do
+			table.insert(Screen.toChange, { x=x, y=y, color=color or WHITE })
+		end
+	end
 end
 
----Set a pixel in the screen to color `col`
+---Set a pixel in the screen to `color`.
 ---@param x integer
 ---@param y integer
----@param col Color?
-function Screen.setPixel(x, y, col)
-	if (x & (1 << 8)) == 1 or (y & (1 << 8)) == 1 then return end
+---@param color Color?
+function Screen.setPixel(x, y, color)
+	if x < 0 or y < 0 or x > SCREEN_SIZE or y > SCREEN_SIZE then return end
 	table.insert(Screen.toChange, {
 		x = math.floor(x),
 		y = math.floor(y),
-		col = col or BLACK
+		color = color or BLACK
 	})
 end
 
@@ -55,20 +59,19 @@ function playdate.update()
 		init = false
 	end
 
-	Screen.clear()
-
 	if Screen.isDirty then
 		for _, p in ipairs(Screen.toChange) do
-			if p.col ~= Screen.pixels[p.y][p.x] then
+			local x, y = p.x+1, p.y+1
+			if p.color ~= Screen.pixels[y][x] then
 				local pixelRealSize = SCALE -- real
-				GFX.setColor(p.col)
+				GFX.setColor(p.color)
 				GFX.fillRect(
 					(p.x)*pixelRealSize,
 					(p.y)*pixelRealSize,
 					pixelRealSize, pixelRealSize
 				)
-				Screen.pixels[p.y] = Screen.pixels[p.y] or {}
-				Screen.pixels[p.y][p.x] = p.col
+				Screen.pixels[y] = Screen.pixels[y] or {}
+				Screen.pixels[y][x] = p.color
 			end
 		end
 		Screen.isDirty = false

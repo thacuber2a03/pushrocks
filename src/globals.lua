@@ -1,3 +1,5 @@
+import "CoreLibs/object"
+
 PD = playdate
 GFX = PD.graphics
 DISP = PD.display
@@ -13,3 +15,5 @@ SCALE = 3
 BLACK = GFX.kColorBlack
 WHITE = GFX.kColorWhite
 XOR   = GFX.kColorXOR
+
+SCREEN_SIZE = (1<<6) -- or just 64
