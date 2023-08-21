@@ -16,4 +16,9 @@ BLACK = GFX.kColorBlack
 WHITE = GFX.kColorWhite
 XOR   = GFX.kColorXOR
 
-SCREEN_SIZE = (1<<6) -- or just 64
+SCREEN_SIZE = (1<<6) -- or 64
+
+---@class Sprite
+---@field public width integer
+---@field public height integer
+---@field public data string
