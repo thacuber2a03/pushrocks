@@ -82,16 +82,17 @@ end
 ---@return boolean # If the screen did change.
 function Screen.requestRedraw()
 	local didChange = false
-	
-	local image = GFX.image.new(SCREEN_SIZE, SCREEN_SIZE, WHITE)
-	GFX.pushContext(image)
 
 	for i=1, SCREEN_SIZE*SCREEN_SIZE do
 		if Screen.pixels[i] ~= Screen.oldPixels[i] then
 			local c = Screen.pixels[i]
 
 			GFX.setColor(c)
-			GFX.drawPixel((i-1)%SCREEN_SIZE, math.floor((i-1)/SCREEN_SIZE))
+			GFX.fillRect(
+				((i-1)%SCREEN_SIZE)*SCALE,
+				math.floor((i-1)/SCREEN_SIZE)*SCALE,
+				SCALE, SCALE
+			)
 
 			didChange = true
 		end
@@ -99,10 +100,6 @@ function Screen.requestRedraw()
 
 	Screen.oldPixels = Screen.pixels
 	Screen.pixels = {}
-
-	GFX.popContext()
-	image:drawScaled(0, 0, SCALE)
-
 	return didChange
 end
 
