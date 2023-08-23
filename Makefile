@@ -6,4 +6,4 @@ main:
 	pdc $(PDCFLAGS) $(SRC) $(NAME)
 
 run: main
-	PlaydateSimulator $(NAME)
+	PlaydateSimulator $(NAME) &

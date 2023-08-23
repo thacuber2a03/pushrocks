@@ -1,33 +1,26 @@
 import "globals"
 
-Screen = {
-	sizeInPixels = SCREEN_SIZE * SCALE,
-	isDirty = true,
-	toChange = {},
-	pixels = {},
-	didChange = false,
-}
+Screen = {}
 
 GFX.setDrawOffset(
-	DWIDTH/2 - Screen.sizeInPixels/2,
-	DHEIGHT/2 - Screen.sizeInPixels/2
+	DWIDTH/2 - SCREEN_SIZE_IN_PIX/2,
+	DHEIGHT/2 - SCREEN_SIZE_IN_PIX/2
 )
 
 ---Hard reset the screen.
 ---@param color Color?
 function Screen.reset(color)
-	Screen.toChange = {}
+	Screen.isDirty = true
+	Screen.oldPixels = {}
 	Screen.pixels = {}
-	for y=1, SCREEN_SIZE do
-		Screen.pixels[y] = {}
-		for x=1, SCREEN_SIZE do
-			Screen.pixels[y][x] = WHITE
-		end
+	for i=1, SCREEN_SIZE*SCREEN_SIZE do
+		Screen.pixels[i] = WHITE
+		Screen.oldPixels[i] = WHITE
 	end
 
 	GFX.clear(BLACK)
 	GFX.setColor(color or WHITE)
-	GFX.fillRect(0, 0, Screen.sizeInPixels, Screen.sizeInPixels)
+	GFX.fillRect(0, 0, SCREEN_SIZE_IN_PIX, SCREEN_SIZE_IN_PIX)
 end
 
 ---Set all the pixels on the screen to `color`.
@@ -41,10 +34,12 @@ end
 ---@param y number
 ---@param color Color?
 function Screen.setPixel(x, y, color)
+	color = color or WHITE
+
 	if x < 0 or y < 0 or x >= SCREEN_SIZE or y >= SCREEN_SIZE then return end
-	if Screen.pixels[y+1][x+1] == color then return end
-	table.insert(Screen.toChange, { x=x, y=y, color=color or BLACK })
-	Screen.requestRedraw = true
+	x = math.floor(x); y = math.floor(y)
+
+	Screen.pixels[(y*SCREEN_SIZE+x)+1] = color
 end
 
 ---Draw a sprite onto the screen.
@@ -83,17 +78,32 @@ function Screen.drawRect(x, y, w, h, color)
 	end
 end
 
----`ipairs`, in reverse.
----@param t table
----@return function
-local function ripairs(t)
-	local i=#t+1
-	return function()
-		i=i-1
-		local v = t[i]
-		if not v then return end
-		return i, v
+---Ask the screen for a redraw.
+---@return boolean # If the screen did change.
+function Screen.requestRedraw()
+	local didChange = false
+	
+	local image = GFX.image.new(SCREEN_SIZE, SCREEN_SIZE, WHITE)
+	GFX.pushContext(image)
+
+	for i=1, SCREEN_SIZE*SCREEN_SIZE do
+		if Screen.pixels[i] ~= Screen.oldPixels[i] then
+			local c = Screen.pixels[i]
+
+			GFX.setColor(c)
+			GFX.drawPixel((i-1)%SCREEN_SIZE, math.floor((i-1)/SCREEN_SIZE))
+
+			didChange = true
+		end
 	end
+
+	Screen.oldPixels = Screen.pixels
+	Screen.pixels = {}
+
+	GFX.popContext()
+	image:drawScaled(0, 0, SCALE)
+
+	return didChange
 end
 
 ---@type Sprite
@@ -104,6 +114,7 @@ local testSprite = {
 }
 
 local px, py = 0, 0
+local oldPx, oldPy
 
 local init = true
 function PD.update()
@@ -112,31 +123,17 @@ function PD.update()
 		Screen.reset(WHITE)
 		init = false
 	else
-		local speed = 1 -- in pixels
-		if PD.buttonJustPressed "right" then px = px + speed end
-		if PD.buttonJustPressed "left"  then px = px - speed end
-		if PD.buttonJustPressed "down"  then py = py + speed end
-		if PD.buttonJustPressed "up"    then py = py - speed end
+		if PD.buttonIsPressed "right" then px = px + 2 end
+		if PD.buttonIsPressed "left"  then px = px - 2 end
+		if PD.buttonIsPressed "down"  then py = py + 2 end
+		if PD.buttonIsPressed "up"    then py = py - 2 end
 
 		Screen.clear()
 		Screen.drawSprite(testSprite, px, py)
 
-		if Screen.requestRedraw then
-			Screen.didChange = false
-			for _, p in ripairs(Screen.toChange) do
-				local x, y = p.x+1, p.y+1
-				local pixelRealSize = SCALE -- real
-				GFX.setColor(p.color)
-				GFX.fillRect(
-					p.x*pixelRealSize,
-					p.y*pixelRealSize,
-					pixelRealSize, pixelRealSize
-				)
-				Screen.pixels[y][x] = p.color
-				Screen.didChange = true
-			end
-			Screen.toChange = {}
-			Screen.requestRedraw = false
+		if px ~= oldPx or py ~= oldPy then
+			Screen.requestRedraw()
+			oldPx, oldPy = px, py
 		end
 	end
 end

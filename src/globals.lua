@@ -17,6 +17,7 @@ WHITE = GFX.kColorWhite
 XOR   = GFX.kColorXOR
 
 SCREEN_SIZE = (1<<6) -- or 64
+SCREEN_SIZE_IN_PIX = SCREEN_SIZE * SCALE
 
 ---@class Sprite
 ---@field public width integer
