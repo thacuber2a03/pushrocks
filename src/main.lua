@@ -2,20 +2,14 @@ import "globals"
 
 Screen = {}
 
-GFX.setDrawOffset(
-	DWIDTH/2 - SCREEN_SIZE_IN_PIX/2,
-	DHEIGHT/2 - SCREEN_SIZE_IN_PIX/2
-)
-
 ---Hard reset the screen.
 ---@param color Color?
-function Screen.reset(color)
-	Screen.isDirty = true
-	Screen.oldPixels = {}
-	Screen.pixels = {}
+function Screen:reset(color)
+	self.oldPixels = {}
+	self.pixels = {}
 	for i=1, SCREEN_SIZE*SCREEN_SIZE do
-		Screen.pixels[i] = WHITE
-		Screen.oldPixels[i] = WHITE
+		self.pixels[i] = WHITE
+		self.oldPixels[i] = WHITE
 	end
 
 	GFX.clear(BLACK)
@@ -25,28 +19,28 @@ end
 
 ---Set all the pixels on the screen to `color`.
 ---@param color Color?
-function Screen.clear(color)
-	Screen.drawRect(0, 0, SCREEN_SIZE, SCREEN_SIZE, color or WHITE)
+function Screen:clear(color)
+	self:drawRect(0, 0, SCREEN_SIZE, SCREEN_SIZE, color or WHITE)
 end
 
 ---Set a pixel in the screen to `color`.
 ---@param x number
 ---@param y number
 ---@param color Color?
-function Screen.setPixel(x, y, color)
+function Screen:setPixel(x, y, color)
 	color = color or WHITE
 
 	if x < 0 or y < 0 or x >= SCREEN_SIZE or y >= SCREEN_SIZE then return end
 	x = math.floor(x); y = math.floor(y)
 
-	Screen.pixels[(y*SCREEN_SIZE+x)+1] = color
+	self.pixels[(y*SCREEN_SIZE+x)+1] = color
 end
 
 ---Draw a sprite onto the screen.
 ---@param sprite Sprite
 ---@param x integer
 ---@param y integer
-function Screen.drawSprite(sprite, x, y)
+function Screen:drawSprite(sprite, x, y)
 	for py=0, sprite.height-1 do
 		for px=0, sprite.width-1 do
 			local pos = (py*sprite.width+px)+1
@@ -58,7 +52,7 @@ function Screen.drawSprite(sprite, x, y)
 			elseif char == "-" then goto continue
 			end
 			if not col then error("invalid color "..char) end
-			Screen.setPixel(x+px, y+py, col)
+			self:setPixel(x+px, y+py, col)
 		    ::continue::
 		end
 	end
@@ -70,22 +64,22 @@ end
 ---@param w integer
 ---@param h integer
 ---@param color Color?
-function Screen.drawRect(x, y, w, h, color)
+function Screen:drawRect(x, y, w, h, color)
 	for ry=0, h-1 do
 		for rx=0, w-1 do
-			Screen.setPixel(x+rx, y+ry, color)
+			self:setPixel(x+rx, y+ry, color)
 		end
 	end
 end
 
 ---Ask the screen for a redraw.
 ---@return boolean # If the screen did change.
-function Screen.requestRedraw()
+function Screen:requestRedraw()
 	local didChange = false
 
 	for i=1, SCREEN_SIZE*SCREEN_SIZE do
-		if Screen.pixels[i] ~= Screen.oldPixels[i] then
-			local c = Screen.pixels[i]
+		if self.pixels[i] ~= self.oldPixels[i] then
+			local c = self.pixels[i]
 
 			GFX.setColor(c)
 			GFX.drawPixel(
@@ -97,8 +91,8 @@ function Screen.requestRedraw()
 		end
 	end
 
-	Screen.oldPixels = Screen.pixels
-	Screen.pixels = {}
+	self.oldPixels = self.pixels
+	self.pixels = {}
 	return didChange
 end
 
@@ -122,11 +116,11 @@ function PD.update()
 		if PD.buttonIsPressed "down"  then py = py + 2 end
 		if PD.buttonIsPressed "up"    then py = py - 2 end
 
-		Screen.clear()
-		Screen.drawSprite(testSprite, px, py)
+		Screen:clear()
+		Screen:drawSprite(testSprite, px, py)
 
 		if px ~= oldPx or py ~= oldPy then
-			Screen.requestRedraw()
+			Screen:requestRedraw()
 			oldPx, oldPy = px, py
 		end
 	end
