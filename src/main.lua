@@ -88,10 +88,9 @@ function Screen.requestRedraw()
 			local c = Screen.pixels[i]
 
 			GFX.setColor(c)
-			GFX.fillRect(
+			GFX.drawPixel(
 				((i-1)%SCREEN_SIZE)*SCALE,
-				math.floor((i-1)/SCREEN_SIZE)*SCALE,
-				SCALE, SCALE
+				math.floor((i-1)/SCREEN_SIZE)
 			)
 
 			didChange = true
@@ -105,8 +104,7 @@ end
 
 ---@type Sprite
 local testSprite = {
-	width = 8,
-	height = 8,
+	width = 8, height = 8,
 	data = "0011110000011000001111001111111100111100001111000010010000100100",
 }
 
@@ -115,7 +113,6 @@ local oldPx, oldPy
 
 local init = true
 function PD.update()
-	PD.drawFPS()
 	if init then
 		Screen.reset(WHITE)
 		init = false
@@ -133,4 +130,5 @@ function PD.update()
 			oldPx, oldPy = px, py
 		end
 	end
+	PD.drawFPS()
 end
