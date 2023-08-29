@@ -7,7 +7,9 @@ local displayImage = GFX.image.new(SCREEN_SIZE, SCREEN_SIZE, BLACK)
 ---Hard reset the screen.
 ---@param color Color?
 function Screen:reset(color)
+	GFX.unlockFocus()
 	GFX.clear(BLACK)
+	GFX.lockFocus(displayImage)
 	self:clear(color)
 end
 
