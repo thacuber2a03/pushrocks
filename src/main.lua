@@ -7,29 +7,17 @@ local displayImage = GFX.image.new(SCREEN_SIZE, SCREEN_SIZE, BLACK)
 ---Hard reset the screen.
 ---@param color Color?
 function Screen:reset(color)
+	GFX.unlockFocus()
+	GFX.clear(BLACK)
+	GFX.lockFocus(displayImage)
 	self:clear(color)
 end
 
 ---Set all the pixels on the screen to `color`.
 ---@param color Color?
 function Screen:clear(color)
-	GFX.unlockFocus()
-	GFX.clear(BLACK)
-	GFX.lockFocus(displayImage)
 	self:drawRect(0, 0, SCREEN_SIZE, SCREEN_SIZE, color or WHITE)
-end
-
----Set a pixel in the screen to `color`.
----@param x number
----@param y number
----@param color Color?
-function Screen:setPixel(x, y, color)
-	color = color or WHITE
-	
-	if x < 0 or y < 0 or x >= SCREEN_SIZE or y >= SCREEN_SIZE then return end
-	x = math.floor(x); y = math.floor(y)
-
-	self.pixels[(y*SCREEN_SIZE+x)+1] = color
+	self.didChange = true
 end
 
 ---Draw a sprite onto the screen.
@@ -78,7 +66,7 @@ function PD.update()
 	if PD.buttonIsPressed "left"  then px = px - 2 end
 	if PD.buttonIsPressed "down"  then py = py + 2 end
 	if PD.buttonIsPressed "up"    then py = py - 2 end
-
+	
 	if oldPx ~= px or oldPy ~= py then
 		Screen:clear()
 		Screen:drawSprite(testSprite, px, py)
