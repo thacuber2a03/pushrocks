@@ -81,7 +81,6 @@ function PD.update()
 	if PD.buttonIsPressed "up"    then py = py - 2 end
 
 	if oldPx ~= px or oldPy ~= py then
-		Screen:clear()
 		Screen:drawSprite(testSprite, px, py)
 		oldPx, oldPy = px, py
 	end
