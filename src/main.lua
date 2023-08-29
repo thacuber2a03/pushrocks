@@ -2,6 +2,8 @@ import "globals"
 
 Screen = {}
 
+local displayImage = GFX.image.new(SCREEN_SIZE, SCREEN_SIZE, BLACK)
+
 ---Hard reset the screen.
 ---@param color Color?
 function Screen:reset(color)
@@ -62,8 +64,6 @@ end
 
 ---@type Sprite
 local testSprite = GFX.image.new("player")
-
-local displayImage = GFX.image.new(SCREEN_SIZE, SCREEN_SIZE, BLACK)
 
 local px, py = 0, 0
 local oldPx, oldPy
